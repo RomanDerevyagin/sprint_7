@@ -3,6 +3,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.example.Courier;
 import org.example.CourierWithoutField;
+import org.example.Login;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,6 @@ public class CreateCourierTest {
                 .and()
                 .statusCode(201);
     }
-
     @Test
     @DisplayName("Создание дубликата курьера возвращает 409")
     void createDuplicateCourier() {
@@ -82,5 +82,25 @@ public class CreateCourierTest {
         response.then()
                 .body("message", equalTo("Недостаточно данных для создания учетной записи"))
                 .statusCode(400);
+    }
+    @Test
+    @DisplayName("Логин курьера в системе, получение id и его удаление")
+    void loginCourier() {
+        Response response = sendPostLogin();
+        deleteCourier(response);
+    }
+    @Step("Отправка POST-запроса на логин курьера")
+    public Response sendPostLogin() {
+        Login courier = new Login("testik", "12345");
+        return given()
+                .header("Content-Type", "application/json")
+                .body(courier)
+                .post("/api/v1/courier/login");
+    }
+    @Step("Получение id и удаление курьера")
+    public void deleteCourier(Response response) {
+        int id = response.jsonPath().getInt("id");
+        given()
+                .delete("/api/v1/courier/{id}", id);
     }
 }

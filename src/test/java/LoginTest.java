@@ -1,7 +1,9 @@
 import io.qameta.allure.Step;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.example.Courier;
 import org.example.Login;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,10 +21,18 @@ public class LoginTest {
     @Test
     @DisplayName("Проверка на успешный логин курьера")
     void loginCourier() {
+        sendPostCourier();
         Response response = sendPostLogin();
         compareRequest(response);
     }
-
+    @Step("Создание учетки курьера")
+    public void sendPostCourier() {
+        Courier courier = new Courier("lol", "12345", "kek");
+        given()
+                .header("Content-Type", "application/json")
+                .body(courier)
+                .post("/api/v1/courier");
+    }
     @Step("Отправка POST-запроса на логин курьера")
     public Response sendPostLogin() {
         Login courier = new Login("lol", "12345");
@@ -85,5 +95,24 @@ public class LoginTest {
                 .body("message", equalTo("Недостаточно данных для входа"))
                 .and()
                 .statusCode(400);
+    }
+    @AfterEach
+    void deleteCreateCourier() {
+        Response response = sendPost();
+        if (response.statusCode() == 200) {
+            deleteCourier(response);
+        }
+    }
+    public Response sendPost() {
+        Login courier = new Login("lol", "12345");
+        return given()
+                .header("Content-Type", "application/json")
+                .body(courier)
+                .post("/api/v1/courier/login");
+    }
+    public void deleteCourier(Response response) {
+        int id = response.jsonPath().getInt("id");
+        given()
+                .delete("/api/v1/courier/{id}", id);
     }
 }

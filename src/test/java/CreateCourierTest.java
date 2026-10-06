@@ -50,7 +50,7 @@ public class CreateCourierTest {
 
     @Step("Повторная отправка POST-запроса с тем же логином")
     public Response sendDuplicatePostCourier() {
-        Courier courier = new Courier("lol", "12345", "kek");
+        Courier courier = new Courier("qwe", "12345", "kek");
         return given()
                 .header("Content-Type", "application/json")
                 .body(courier)

@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import org.example.Courier;
 import org.example.CourierWithoutField;
 import org.example.Login;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -83,13 +84,13 @@ public class CreateCourierTest {
                 .body("message", equalTo("Недостаточно данных для создания учетной записи"))
                 .statusCode(400);
     }
-    @Test
-    @DisplayName("Логин курьера в системе, получение id и его удаление")
+    @AfterEach
     void loginCourier() {
         Response response = sendPostLogin();
-        deleteCourier(response);
+        if (response.statusCode() == 200) {
+            deleteCourier(response);
+        }
     }
-    @Step("Отправка POST-запроса на логин курьера")
     public Response sendPostLogin() {
         Login courier = new Login("testik", "12345");
         return given()
@@ -97,7 +98,6 @@ public class CreateCourierTest {
                 .body(courier)
                 .post("/api/v1/courier/login");
     }
-    @Step("Получение id и удаление курьера")
     public void deleteCourier(Response response) {
         int id = response.jsonPath().getInt("id");
         given()
